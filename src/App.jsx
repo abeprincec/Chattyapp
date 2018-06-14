@@ -18,50 +18,65 @@ const data = {
 		},
 	],
 };
+
 class App extends Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			loading: true,
-			data: data,
+			currentUser: { name: 'Bob' },
+			messages: [],
 		};
+		this.socket = null;
 	}
+
+	connect = () => {
+		this.socket = new WebSocket('ws://localhost:3001', 'protocolOne');
+		this.socket.addEventListener('open', () => {
+			//	this.socket.send('Hello Server!');
+		});
+	};
 	componentDidMount() {
+		this.connect();
+		console.log(`Connected to server`);
 		console.log('componentDidMount <App />');
 		setTimeout(() => {
 			console.log('Simulating incoming message');
 
 			// Add a new message to the list of messages in the data store
 			const newMessage = {
-				id: 3,
+				id: 10,
 				username: 'Michelle',
 				content: 'Hello there!',
 			};
-			const messages = this.state.data.messages.concat(newMessage);
+			//const messages = this.state.messages.concat(newMessage);
 			// Update the state of the app component.
 			// Calling setState will trigger a call to render() in App and all child components.
 			this.setState({
-				data: { ...this.state.data, messages: messages },
+				messages: [newMessage],
 			});
 		}, 3000);
+
+		this.socket.addEventListener('message', event => {
+			let message = JSON.parse(event.data);
+			console.log(message);
+			this.setState({
+				messages: [...this.state.messages, message],
+			});
+		});
 	}
 
-	handlemsgInput = (username, content) => {
-		const uniqid = Date.now();
-		const newMessage = {
-			id: this.state.data.messages.length + 1,
+	addMessage = (username, content) => {
+		const sendMsg = {
 			username,
 			content,
 		};
-		const messages = this.state.data.messages.concat(newMessage);
-		this.setState({
-			data: { ...this.state.currentUser, messages: messages },
-		});
-		console.log(this.state.data);
+
+		this.socket.send(JSON.stringify(sendMsg));
 	};
 
 	render() {
-		let { messages, currentUser } = this.state.data;
+		console.log(this.state);
+		let { currentUser } = this.state;
 		return (
 			<div>
 				<nav className="navbar">
@@ -69,9 +84,9 @@ class App extends Component {
 						Chatty
 					</a>
 				</nav>
-				<MessageList messages={messages}> </MessageList>
+				<MessageList messages={this.state.messages}> </MessageList>
 
-				<Chatbar currentUser={currentUser} handleNewMsg={this.handlemsgInput} />
+				<Chatbar currentUser={currentUser} handleNewMsg={this.addMessage} />
 			</div>
 		);
 	}
