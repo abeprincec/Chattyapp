@@ -3,6 +3,9 @@ Chatty App
 
 A chat app using react.js and web sockets.
 
+## Screenshots
+
+!["Screenshot of Chatty App"](https://raw.githubusercontent.com/abeprincec/Chattyapp/master/docs/ChattyApp.png)
 
 
 
